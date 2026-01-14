@@ -1,0 +1,41 @@
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.color-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: #333;
+    transform: scale(1.1);
+}
+
+/* Общий стиль для всех select2-пунктов */
+.select2-container--default .select2-results__option {
+    color: #333;
+    background-color: #fff;
+}
+
+/* Подсветка при наведении (hover или стрелкой) — СЕРЫЙ цвет */
+.select2-container--default .select2-results__option--highlighted {
+    background-color: #dee2e6 !important;  /* светло-серый */
+    color: #000 !important;
+}
+
+
+
+
+

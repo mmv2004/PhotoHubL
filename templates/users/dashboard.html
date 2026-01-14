@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная | PhotoHub{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">Добро пожаловать, {{ user.first_name }}!</h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Календарь</h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="show-all-events">Все</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="show-photoshoots">Съемки</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="show-posts">Посты</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="calendar">
+
+
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'calendar:calendar' %}" class="btn btn-sm btn-primary">Перейти в календарь</a>
+                    <a href="{% url 'calendar:event_add' %}" class="btn btn-sm btn-cta">Добавить событие</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Клиенты</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for client in recent_clients %}
+                            <a href="{% url 'clients:client_detail' client.pk %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ client.get_full_name }}</h6>
+                                    <small class="text-muted">{{ client.created_at|date:"d.m.Y" }}</small>
+                                </div>
+                                {% if client.phone_number %}
+                                    <small class="text-muted"><i class="fas fa-phone me-1"></i> {{ client.phone_number }}</small>
+                                {% endif %}
+                            </a>
+                        {% empty %}
+                            <div class="text-center py-3">
+                                <p class="text-muted mb-0">У вас пока нет клиентов</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'clients:client_list' %}" class="btn btn-sm btn-primary">Все клиенты</a>
+                    <a href="{% url 'clients:client_add' %}" class="btn btn-sm btn-cta">Добавить клиента</a>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Студии и локации</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for studio in recent_studios %}
+                            <a href="{% url 'studios:studio_detail' studio.pk %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ studio.name }}</h6>
+                                    <small class="text-muted">{{ studio.location_type_display }}</small>
+                                </div>
+                                <small class="text-muted">{{ studio.get_full_address }}</small>
+                            </a>
+                        {% empty %}
+                            <div class="text-center py-3">
+                                <p class="text-muted mb-0">Нет доступных студий и локаций</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'studios:studio_list' %}" class="btn btn-sm btn-primary">Все студии</a>
+                    <a href="{% url 'studios:studio_add' %}" class="btn btn-sm btn-cta">Добавить студию</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Последние референсы</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for reference in recent_references %}
+                            <div class="col-md-3 mb-4">
+                                <div class="card h-100">
+                                    <img src="{{ reference.image.url }}" class="card-img-top" alt="{{ reference.title }}" style="height: 180px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ reference.title }}</h6>
+                                        {% if reference.category %}
+                                            <span class="badge bg-secondary">{{ reference.category.name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="{% url 'references:reference_detail' reference.pk %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12 text-center py-3">
+                                <p class="text-muted mb-0">У вас пока нет референсов</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'references:reference_list' %}" class="btn btn-sm btn-primary">Все референсы</a>
+                    <a href="{% url 'references:reference_add' %}" class="btn btn-sm btn-cta">Добавить референс</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+<!--<script>-->
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        var calendarEl = document.getElementById('calendar');-->
+<!--        -->
+<!--        if (calendarEl) {-->
+<!--            var calendar = new FullCalendar.Calendar(calendarEl, {-->
+<!--                initialView: 'dayGridMonth',-->
+<!--                locale: 'ru',-->
+<!--                headerToolbar: {-->
+<!--                    left: 'prev,next today',-->
+<!--                    center: 'title',-->
+<!--                    right: 'dayGridMonth,timeGridWeek,listWeek'-->
+<!--                },-->
+<!--                events: "{% url 'calendar:events_json' %}",-->
+<!--                eventTimeFormat: {-->
+<!--                    hour: '2-digit',-->
+<!--                    minute: '2-digit',-->
+<!--                    hour12: false-->
+<!--                },-->
+<!--                height: 'auto',-->
+<!--                eventClick: function(info) {-->
+<!--                    if (info.event.url) {-->
+<!--                        window.location.href = info.event.url;-->
+<!--                        return false;-->
+<!--                    }-->
+<!--                }-->
+<!--            });-->
+<!--            -->
+<!--            calendar.render();-->
+<!--            -->
+<!--            // Фильтрация событий-->
+<!--            document.getElementById('show-all-events').addEventListener('click', function() {-->
+<!--                calendar.removeAllEventSources();-->
+<!--                calendar.addEventSource("{% url 'calendar:events_json' %}");-->
+<!--            });-->
+<!--            -->
+<!--            document.getElementById('show-photoshoots').addEventListener('click', function() {-->
+<!--                calendar.removeAllEventSources();-->
+<!--                calendar.addEventSource("{% url 'calendar:filtered_events_json' 'photoshoot' %}");-->
+<!--            });-->
+<!--            -->
+<!--            document.getElementById('show-posts').addEventListener('click', function() {-->
+<!--                calendar.removeAllEventSources();-->
+<!--                calendar.addEventSource("{% url 'calendar:filtered_events_json' 'post' %}");-->
+<!--            });-->
+<!--        }-->
+<!--    });-->
+<!--</script>-->
+{% endblock %}
+

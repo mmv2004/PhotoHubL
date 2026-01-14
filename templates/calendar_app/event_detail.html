@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} | События | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: {{ event.color }}; color: white;">
+                    <h5 class="mb-0">{{ event.title }}</h5>
+                    <div>
+                        <a href="{% url 'calendar:event_edit' event.pk %}" class="btn btn-sm btn-light me-2">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{% url 'calendar:event_delete' event.pk %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Тип события</h6>
+                                {% if event.event_type == 'photoshoot' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-camera me-1"></i> Фотосъемка
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-share-alt me-1"></i> Пост
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Дата и время</h6>
+                                {% if event.is_all_day %}
+                                    <p class="mb-0">{{ event.start_datetime|date:"d.m.Y" }} (весь день)</p>
+                                {% else %}
+                                    <p class="mb-0">{{ event.start_datetime|date:"d.m.Y H:i" }} - {{ event.end_datetime|date:"H:i" }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {% if event.client %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-1">Клиент</h6>
+                                    <p class="mb-0">
+                                        <a href="{% url 'clients:client_detail' event.client.pk %}" class="text-decoration-none">
+                                            {{ event.client.get_full_name }}
+                                        </a>
+                                    </p>
+                                </div>
+                            {% endif %}
+                            
+                            {% if event.studio %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-1">Студия/локация</h6>
+                                    <p class="mb-0">
+                                        <a href="{% url 'studios:studio_detail' event.studio.pk %}" class="text-decoration-none">
+                                            {{ event.studio.name }}
+                                        </a>
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if event.description %}
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Описание</h6>
+                            <div class="p-3 bg-light rounded">
+                                {{ event.description|linebreaks }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <span class="text-muted">Создано: {{ event.created_at|date:"d.m.Y H:i" }}</span>
+                    <span class="text-muted">Обновлено: {{ event.updated_at|date:"d.m.Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'calendar:event_edit' event.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i> Редактировать событие
+                        </a>
+                        <a href="{% url 'calendar:event_delete' event.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i> Удалить событие
+                        </a>
+                        <a href="{% url 'calendar:calendar' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-calendar-alt me-2"></i> Вернуться к календарю
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+            
+            {% if event.event_type == 'photoshoot' and event.client %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Информация о клиенте</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if event.client.avatar %}
+                                <img src="{{ event.client.avatar.url }}" alt="{{ event.client.get_full_name }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0">{{ event.client.get_full_name }}</h6>
+                                {% if event.client.email %}
+                                    <small class="text-muted">{{ event.client.email }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if event.client.phone %}
+                            <div class="mb-2">
+                                <i class="fas fa-phone-alt me-2 text-muted"></i>
+                                <a href="tel:{{ event.client.phone }}" class="text-decoration-none">{{ event.client.phone }}</a>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'clients:client_detail' event.client.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-user me-2"></i> Просмотреть профиль клиента
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

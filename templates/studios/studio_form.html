@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}
+        Редактирование студии | PhotoHub
+    {% else %}
+        Добавление студии | PhotoHub
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map-picker {
+        width: 100%;
+        height: 400px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    
+    .map-hint {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'studios:studio_list' %}">Студии и локации</a></li>
+                    {% if object %}
+                        <li class="breadcrumb-item"><a href="{% url 'studios:studio_detail' object.pk %}">{{ object.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Редактирование</li>
+                    {% else %}
+                        <li class="breadcrumb-item active" aria-current="page">Добавление студии/локации</li>
+                    {% endif %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        {% if object %}
+                            Редактирование студии/локации
+                        {% else %}
+                            Добавление новой студии/локации
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="studio-form">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                            {{ form.name.errors }}
+                            <input type="text" name="{{ form.name.name }}" id="{{ form.name.id_for_label }}" class="form-control {% if form.name.errors %}is-invalid{% endif %}" value="{{ form.name.value|default:'' }}" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.location_type.id_for_label }}" class="form-label">{{ form.location_type.label }}</label>
+                                {{ form.location_type.errors }}
+                                <select name="{{ form.location_type.name }}" id="{{ form.location_type.id_for_label }}" class="form-select {% if form.location_type.errors %}is-invalid{% endif %}">
+                                    {% for value, text in form.fields.location_type.choices %}
+                                        <option value="{{ value }}" {% if form.location_type.value == value %}selected{% endif %}>{{ text }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% if user.is_staff %}
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.is_public.id_for_label }}" class="form-label">{{ form.is_public.label }}</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" name="{{ form.is_public.name }}" id="{{ form.is_public.id_for_label }}" class="form-check-input {% if form.is_public.errors %}is-invalid{% endif %}" {% if form.is_public.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ form.is_public.id_for_label }}">Сделать локацию публичной</label>
+                                </div>
+                                {% if form.is_public.help_text %}
+                                    <div class="form-text">{{ form.is_public.help_text }}</div>
+                                {% endif %}
+                                {{ form.is_public.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <h6 class="mb-3 mt-4">Адрес</h6>
+
+                        <div class="map-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Используйте поиск на карте или кликните на карту, чтобы выбрать адрес.
+                            Город и район определятся автоматически.
+                        </div>
+
+                        <div id="map-picker"></div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.full_address.id_for_label }}" class="form-label">Полный адрес</label>
+                            {{ form.full_address.errors }}
+                            <textarea name="{{ form.full_address.name }}" id="{{ form.full_address.id_for_label }}" class="form-control {% if form.full_address.errors %}is-invalid{% endif %}" rows="2" readonly>{{ form.full_address.value|default:'' }}</textarea>
+                            <div class="form-text">Адрес будет автоматически определен при выборе на карте</div>
+                        </div>
+
+                        <!-- Скрытые поля для координат -->
+                        {{ form.latitude }}
+                        {{ form.longitude }}
+                        {{ form.city }}
+                        {{ form.district }}
+
+                        <div class="mb-3">
+                            <label for="{{ form.website.id_for_label }}" class="form-label">{{ form.website.label }}</label>
+                            {{ form.website.errors }}
+                            <input type="url" name="{{ form.website.name }}" id="{{ form.website.id_for_label }}" class="form-control {% if form.website.errors %}is-invalid{% endif %}" value="{{ form.website.value|default:'' }}" placeholder="https://example.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description.errors }}
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" class="form-control {% if form.description.errors %}is-invalid{% endif %}" rows="5">{{ form.description.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if object %}{% url 'studios:studio_detail' object.pk %}{% else %}{% url 'studios:studio_list' %}{% endif %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-cta">
+                                {% if object %}
+                                    Сохранить изменения
+                                {% else %}
+                                    Добавить локацию
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey=6b266f03-65da-43a8-9ff9-d0232b97e81b&lang=ru_RU" type="text/javascript"></script>
+<script>
+    ymaps.ready(initMapPicker);
+
+    let map;
+    let placemark;
+
+    function initMapPicker() {
+        console.log('=== INITIALIZING MAP PICKER ===');
+
+        // Получаем текущие координаты или используем Москву по умолчанию
+        const currentLat = parseFloat(document.getElementById('id_latitude').value) || 55.751574;
+        const currentLon = parseFloat(document.getElementById('id_longitude').value) || 37.573856;
+
+        console.log('Initial coordinates:', currentLat, currentLon);
+
+        try {
+            map = new ymaps.Map('map-picker', {
+                center: [currentLat, currentLon],
+                zoom: 15,
+                controls: ['zoomControl', 'searchControl']
+            });
+
+            console.log('Map created successfully');
+
+            // Если есть координаты, добавляем маркер
+            if (document.getElementById('id_latitude').value && document.getElementById('id_longitude').value) {
+                addPlacemark(currentLat, currentLon);
+            }
+
+            // Клик по карте для установки маркера
+            map.events.add('click', function(e) {
+                console.log('Map clicked');
+                const coords = e.get('coords');
+                addPlacemark(coords[0], coords[1]);
+                reverseGeocode(coords);
+            });
+
+            // Обработка результата поиска
+            const searchControl = map.controls.get('searchControl');
+            if (searchControl) {
+                searchControl.events.add('resultselect', function (e) {
+                    console.log('Search result selected');
+                    const results = searchControl.getResultsArray();
+                    const selected = results[e.get('index')];
+                    const coords = selected.geometry.getCoordinates();
+                    addPlacemark(coords[0], coords[1]);
+                    reverseGeocode(coords);
+                });
+            }
+
+        } catch (error) {
+            console.error('Error initializing map:', error);
+        }
+    }
+
+    function addPlacemark(lat, lon) {
+        console.log('Adding placemark at:', lat, lon);
+
+        // Удаляем старый маркер, если есть
+        if (placemark) {
+            map.geoObjects.remove(placemark);
+        }
+
+        // Добавляем новый маркер
+        placemark = new ymaps.Placemark([lat, lon], {
+            hintContent: 'Местоположение локации',
+            balloonContent: 'Выбранное местоположение'
+        }, {
+            preset: 'islands#redIcon',
+            draggable: true
+        });
+
+        // Обновляем координаты при перетаскивании маркера
+        placemark.events.add('dragend', function() {
+            console.log('Placemark dragged');
+            const coords = placemark.geometry.getCoordinates();
+            reverseGeocode(coords);
+        });
+
+        map.geoObjects.add(placemark);
+        map.setCenter([lat, lon], 15);
+
+        // Сохраняем координаты в форму
+        document.getElementById('id_latitude').value = lat;
+        document.getElementById('id_longitude').value = lon;
+
+        console.log('Placemark added successfully');
+    }
+
+    function reverseGeocode(coords) {
+        console.log('Reverse geocoding for:', coords);
+
+        ymaps.geocode(coords).then(function(res) {
+            const firstGeoObject = res.geoObjects.get(0);
+            if (firstGeoObject) {
+                const fullAddress = firstGeoObject.getAddressLine();
+
+                // Получаем компоненты адреса
+                const addressComponents = firstGeoObject.properties.get('metaDataProperty').GeocoderMetaData.Address.Components;
+
+                let city = '';
+                let district = '';
+
+                // Ищем город и район в компонентах
+                addressComponents.forEach(component => {
+                    if (component.kind === 'locality') {
+                        city = component.name;
+                    } else if (component.kind === 'district' || component.kind === 'area') {
+                        district = component.name;
+                    }
+                });
+
+                console.log('Geocoding result:', { fullAddress, city, district });
+
+                // Заполняем поля формы
+                document.getElementById('id_full_address').value = fullAddress;
+                document.getElementById('id_city').value = city;
+                document.getElementById('id_district').value = district;
+
+                // Обновляем подсказку маркера
+                placemark.properties.set({
+                    hintContent: fullAddress,
+                    balloonContent: fullAddress
+                });
+
+            } else {
+                console.log('No geocoding results found');
+            }
+        }).catch(function(error) {
+            console.error('Geocoding error:', error);
+        });
+    }
+</script>
+{% endblock %}

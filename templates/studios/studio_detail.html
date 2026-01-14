@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ studio.name }} | Студии | PhotoHub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/css/lightbox.min.css">
+<link rel="stylesheet" href="{% static 'css/studios/studio_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'studios:studio_list' %}">Студии и локации</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ studio.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ studio.name }}</h5>
+                    <div>
+                        <span class="badge {% if studio.location_type == 'studio' %}bg-primary{% else %}bg-success{% endif %}">
+                            {{ studio.get_location_type_display }}
+                        </span>
+                        
+                        {% if studio.is_public %}
+                            <span class="badge bg-success">Публичная</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Приватная</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% with main_image=studio.images.filter.first %}
+                    {% if main_image %}
+                        <img src="{{ main_image.image.url }}" class="card-img-top" alt="{{ studio.name }}" style="max-height: 400px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                            <i class="fas fa-camera fa-5x text-secondary"></i>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="card-body">
+                    <h6 class="mb-3">Информация о студии</h6>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            яя
+                            
+                            {% if studio.website %}
+                                <p><i class="fas fa-globe me-2"></i> <strong>Веб-сайт:</strong> 
+                                    <a href="{{ studio.website }}" target="_blank">{{ studio.website }}</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <p><i class="fas fa-user me-2"></i> <strong>Добавил:</strong> {{ studio.created_by.get_full_name }}</p>
+                            <p><i class="fas fa-calendar me-2"></i> <strong>Дата добавления:</strong> {{ studio.created_at|date:"d.m.Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if studio.description %}
+                        <h6 class="mb-2">Описание</h6>
+                        <div class="mb-4">
+                            {{ studio.description|linebreaks }}
+                        </div>
+                    {% endif %}
+                    
+                    {% if studio.created_by == request.user %}
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'studios:studio_edit' studio.pk %}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-edit"></i> Редактировать
+                            </a>
+                            <a href="{% url 'studios:studio_delete' studio.pk %}" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i> Удалить
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Галерея</h5>
+                    <a href="{% url 'studios:studio_add_image' studio.pk %}" class="btn btn-sm btn-cta">
+                        <i class="fas fa-plus"></i> Добавить фото
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if images %}
+                        <div class="studio-gallery">
+                            {% for image in images %}
+                                <div class="studio-gallery-item">
+                                    {% if image.is_main %}
+                                        <div class="main-image-badge">
+                                            <i class="fas fa-star"></i> Главное
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <a href="{{ image.image.url }}" data-lightbox="studio-gallery" data-title="{{ image.caption }}">
+                                        <img src="{{ image.image.url }}" alt="{{ image.caption }}">
+                                    </a>
+                                    
+                                    <div class="overlay">
+                                        {% if image.caption %}
+                                            {{ image.caption }}
+                                        {% else %}
+                                            Изображение {{ forloop.counter }}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if studio.created_by == request.user %}
+                                        <div class="actions">
+                                            {% if not image.is_main %}
+                                                <a href="{% url 'studios:studio_set_main_image' image.pk %}" class="btn btn-sm btn-primary" title="Сделать главным">
+                                                    <i class="fas fa-star"></i>
+                                                </a>
+                                            {% endif %}
+                                            
+                                            <a href="{% url 'studios:studio_image_delete' image.pk %}" class="btn btn-sm btn-danger" title="Удалить">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-3">У этой студии пока нет фотографий</p>
+                            <a href="{% url 'studios:studio_add_image' studio.pk %}" class="btn btn-sm btn-cta">
+                                <i class="fas fa-plus"></i> Добавить первое фото
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Предстоящие съемки</h5>
+                </div>
+                <div class="card-body">
+                    {% with studio_events=studio.events.all %}
+                        {% if studio_events %}
+                            <div class="list-group list-group-flush">
+                                {% for event in studio_events %}
+                                    <a href="{% url 'calendar:event_detail' event.pk %}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ event.title }}</h6>
+                                            <small>{{ event.start_datetime|date:"d.m.Y" }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ event.start_datetime|date:"H:i" }} - {{ event.end_datetime|date:"H:i" }}</p>
+                                        <small>Фотограф: {{ event.photographer.get_full_name }}</small>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center mb-0">Нет предстоящих съемок в этой студии</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'calendar:event_add' %}?studio={{ studio.pk }}" class="btn btn-sm btn-cta">
+                        <i class="fas fa-plus"></i> Запланировать съемку
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/js/lightbox.min.js"></script>
+<script src="{% static 'js/studios/studio_detail.js' %}"></script>
+{% endblock %}
+

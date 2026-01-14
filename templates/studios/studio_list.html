@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Студии и локации | PhotoHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map-container {
+        position: sticky;
+        top: 80px;
+        height: 500px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    #map-container.hidden {
+        height: 0;
+        margin-bottom: 0;
+        opacity: 0;
+    }
+
+    #map-container.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        border-radius: 0;
+        margin-bottom: 0;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    .map-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+    }
+
+    /* ПРОСТО КНОПКА ЗАКРЫТИЯ В ВЕРХУ СТРАНИЦЫ */
+    .close-fullscreen-top {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 10000;
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        gap: 5px;
+        font-size: 16px;
+    }
+
+    .close-fullscreen-top:hover {
+        background: #c82333;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .map-toggle-btn, .fullscreen-btn {
+        background: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .map-toggle-btn:hover, .fullscreen-btn:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        transform: translateY(-1px);
+    }
+
+    .studio-item {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .studio-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .studio-item.highlighted {
+        border: 2px solid #e8b4c8;
+        box-shadow: 0 4px 16px rgba(232, 180, 200, 0.4);
+    }
+
+    /* Стили для полноэкранного режима */
+    body.map-fullscreen {
+        overflow: hidden;
+    }
+
+    .fullscreen-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.8);
+        z-index: 9998;
+        display: none;
+    }
+
+    .fullscreen-overlay.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Оверлей для полноэкранного режима -->
+<div class="fullscreen-overlay" id="fullscreen-overlay"></div>
+
+<!-- ПРОСТО КНОПКА ЗАКРЫТИЯ В САМОМ ВЕРХУ СТРАНИЦЫ -->
+<button class="close-fullscreen-top" id="close-fullscreen-top">
+    <i class="fas fa-times"></i>
+</button>
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2>Студии и локации</h2>
+            <a href="{% url 'studios:studio_add' %}" class="btn btn-cta">
+                <i class="fas fa-plus"></i> Добавить студию/локацию
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Фильтры</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <select id="location-type-filter" class="form-select">
+                                <option value="all">Все типы</option>
+                                <option value="studio">Только студии</option>
+                                <option value="outdoor">Только уличные локации</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <select id="city-filter" class="form-select">
+                                <option value="all">Все города</option>
+                                {% for studio in studios %}
+                                    <option value="{{ studio.city }}">{{ studio.city }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group">
+                                <input type="text" id="studio-search" class="form-control" placeholder="Поиск по названию или адресу...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12" style="position: relative;">
+            <div class="map-controls">
+                <button class="fullscreen-btn" id="fullscreen-btn" title="На весь экран">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="map-toggle-btn" id="map-toggle-btn">
+                    <i class="fas fa-eye-slash"></i> Скрыть карту
+                </button>
+            </div>
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="studios-container">
+        {% for studio in studios %}
+            <div class="col-md-6 col-lg-4 mb-4 studio-item"
+                 data-studio-id="{{ studio.id }}"
+                 data-location-type="{{ studio.location_type }}"
+                 data-city="{{ studio.city }}">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ studio.name }}</h5>
+                        <span class="badge {% if studio.location_type == 'studio' %}bg-primary{% else %}bg-success{% endif %}">
+                            {{ studio.get_location_type_display }}
+                        </span>
+                    </div>
+
+                    {% with main_image=studio.images.filter.first %}
+                        {% if main_image %}
+                            <img src="{{ main_image.image.url }}" class="card-img-top" alt="{{ studio.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-camera fa-3x text-secondary"></i>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="card-body">
+                        <p class="card-text">
+                            <i class="fas fa-map-marker-alt me-2"></i> {{ studio.get_full_address }}
+                        </p>
+
+                        {% if studio.website %}
+                            <p class="card-text">
+                                <i class="fas fa-globe me-2"></i>
+                                <a href="{{ studio.website }}" target="_blank">{{ studio.website }}</a>
+                            </p>
+                        {% endif %}
+
+                        {% if studio.description %}
+                            <p class="card-text">{{ studio.description|truncatechars:100 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <button class="btn btn-sm btn-outline-secondary show-on-map-btn" data-studio-id="{{ studio.id }}">
+                            <i class="fas fa-map-marker-alt"></i> Показать на карте
+                        </button>
+                        <div>
+                            {% if studio.created_by == request.user %}
+                                <span class="badge bg-info">Ваша студия</span>
+                            {% endif %}
+
+                            {% if studio.is_public %}
+                                <span class="badge bg-success">Публичная</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Приватная</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <a href="{% url 'studios:studio_detail' studio.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <p class="mb-0 text-center">Студии и локации не найдены</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey=6b266f03-65da-43a8-9ff9-d0232b97e81b&lang=ru_RU" type="text/javascript"></script>
+<script>
+    // Передаем данные студий из Django в JavaScript
+    const studiosData = JSON.parse('{{ studios_json|safe }}');
+</script>
+<script src="{% static 'js/studios/studio_list.js' %}"></script>
+{% endblock %}

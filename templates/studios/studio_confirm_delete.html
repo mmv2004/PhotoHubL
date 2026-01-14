@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление студии | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'studios:studio_list' %}">Студии и локации</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'studios:studio_detail' object.pk %}">{{ object.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Удаление</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Подтверждение удаления</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">Вы уверены, что хотите удалить студию <strong>{{ object.name }}</strong>?</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Это действие нельзя будет отменить. Все данные студии, включая изображения, будут удалены безвозвратно.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'studios:studio_detail' object.pk %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

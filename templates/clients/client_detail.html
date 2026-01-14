@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ client.get_full_name }} | Клиенты | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'clients:client_list' %}">Клиенты</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ client.get_full_name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Информация о клиенте</h5>
+                    <div>
+                        <a href="{% url 'clients:client_edit' client.pk %}" class="btn btn-sm btn-outline-primary" title="Редактировать">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{% url 'clients:client_delete' client.pk %}" class="btn btn-sm btn-outline-danger" title="Удалить">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto mb-3 d-flex align-items-center justify-content-center bg-light rounded-circle">
+                            <i class="fas fa-user-circle fa-4x text-secondary"></i>
+                        </div>
+                        <h4>{{ client.get_full_name }}</h4>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Контактная информация</h6>
+                        <ul class="list-group list-group-flush">
+                            {% if client.email %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><i class="fas fa-envelope me-2"></i> Email</span>
+                                    <span>{{ client.email }}</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if client.phone_number %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><i class="fas fa-phone me-2"></i> Телефон</span>
+                                    <span>{{ client.phone_number }}</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if client.address %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><i class="fas fa-map-marker-alt me-2"></i> Адрес</span>
+                                    <span>{{ client.address }}</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if client.birth_date %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span><i class="fas fa-birthday-cake me-2"></i> Дата рождения</span>
+                                    <span>{{ client.birth_date|date:"d.m.Y" }}</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h6 class="text-muted mb-2">Дополнительная информация</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="fas fa-calendar me-2"></i> Дата добавления</span>
+                                <span>{{ client.created_at|date:"d.m.Y" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><i class="fas fa-clock me-2"></i> Последнее обновление</span>
+                                <span>{{ client.updated_at|date:"d.m.Y H:i" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Примечания</h5>
+                </div>
+                <div class="card-body">
+                    {% if client.notes %}
+                        <p>{{ client.notes|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted">Нет примечаний</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Предстоящие съемки</h5>
+                    <a href="{% url 'calendar:event_add' %}?client={{ client.pk }}" class="btn btn-sm btn-cta">
+                        <i class="fas fa-plus"></i> Добавить съемку
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% with client_events=client.events.all %}
+                        {% if client_events %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Название</th>
+                                            <th>Дата и время</th>
+                                            <th>Локация</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for event in client_events %}
+                                            <tr>
+                                                <td>{{ event.title }}</td>
+                                                <td>{{ event.start_datetime|date:"d.m.Y H:i" }}</td>
+                                                <td>{{ event.studio.name|default:"-" }}</td>
+                                                <td>
+                                                    <a href="{% url 'calendar:event_detail' event.pk %}" class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Нет предстоящих съемок с этим клиентом</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

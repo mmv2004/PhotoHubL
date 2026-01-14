@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Поиск студий | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2>Поиск студий и локаций</h2>
+            <a href="{% url 'studios:studio_add' %}" class="btn btn-cta">
+                <i class="fas fa-plus"></i> Добавить студию/локацию
+            </a>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Параметры поиска</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'studios:studio_search' %}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.query.id_for_label }}" class="form-label">{{ form.query.label }}</label>
+                                {{ form.query }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.location_type.id_for_label }}" class="form-label">{{ form.location_type.label }}</label>
+                                {{ form.location_type }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">{{ form.city.label }}</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i> Найти
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>Результаты поиска</h5>
+                <span class="badge bg-primary">{{ studios|length }} найдено</span>
+            </div>
+        </div>
+        
+        {% for studio in studios %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ studio.name }}</h5>
+                        <span class="badge {% if studio.location_type == 'studio' %}bg-primary{% else %}bg-success{% endif %}">
+                            {{ studio.get_location_type_display }}
+                        </span>
+                    </div>
+                    
+                    {% with main_image=studio.images.filter.first %}
+                        {% if main_image %}
+                            <img src="{{ main_image.image.url }}" class="card-img-top" alt="{{ studio.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-camera fa-3x text-secondary"></i>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="card-body">
+                        <p class="card-text">
+                            <i class="fas fa-map-marker-alt me-2"></i> {{ studio.get_full_address }}
+                        </p>
+                        
+                        {% if studio.website %}
+                            <p class="card-text">
+                                <i class="fas fa-globe me-2"></i> 
+                                <a href="{{ studio.website }}" target="_blank">{{ studio.website }}</a>
+                            </p>
+                        {% endif %}
+                        
+                        {% if studio.description %}
+                            <p class="card-text">{{ studio.description|truncatechars:100 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer d-flex justify-content-between">
+                        <div>
+                            {% if studio.created_by == request.user %}
+                                <span class="badge bg-info">Ваша студия</span>
+                            {% endif %}
+                            
+                            {% if studio.is_public %}
+                                <span class="badge bg-success">Публичная</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Приватная</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <a href="{% url 'studios:studio_detail' studio.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <p class="mb-0 text-center">По вашему запросу ничего не найдено</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-12 text-end">
+            <a href="{% url 'studios:studio_list' %}" class="btn btn-outline-secondary">Вернуться к списку студий</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

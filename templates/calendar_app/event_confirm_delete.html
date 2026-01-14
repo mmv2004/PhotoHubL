@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление события | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'calendar:calendar' %}">Календарь</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'calendar:event_detail' object.pk %}">{{ object.title }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Удаление</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Подтверждение удаления</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="display-1 text-danger">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-4">Вы уверены, что хотите удалить событие <strong>{{ object.title }}</strong>?</h5>
+                    
+                    <div class="alert alert-warning">
+                        <div class="mb-2">
+                            <strong>Информация о событии:</strong>
+                        </div>
+                        <ul class="text-start mb-0">
+                            <li>
+                                <strong>Тип:</strong> 
+                                {% if object.event_type == 'photoshoot' %}
+                                    Фотосъемка
+                                {% else %}
+                                    Пост
+                                {% endif %}
+                            </li>
+                            <li>
+                                <strong>Дата и время:</strong> 
+                                {% if object.is_all_day %}
+                                    {{ object.start_datetime|date:"d.m.Y" }} (весь день)
+                                {% else %}
+                                    {{ object.start_datetime|date:"d.m.Y H:i" }} - {{ object.end_datetime|date:"H:i" }}
+                                {% endif %}
+                            </li>
+                            {% if object.client %}
+                                <li><strong>Клиент:</strong> {{ object.client.get_full_name }}</li>
+                            {% endif %}
+                            {% if object.studio %}
+                                <li><strong>Студия/локация:</strong> {{ object.studio.name }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Это действие нельзя будет отменить. Событие будет удалено безвозвратно.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'calendar:event_detail' object.pk %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

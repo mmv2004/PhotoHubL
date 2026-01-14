@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление изображения | {{ studio.name }} | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'studios:studio_list' %}">Студии и локации</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'studios:studio_detail' studio.pk %}">{{ studio.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Добавление изображения</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Добавление изображения для студии "{{ studio.name }}"</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
+                            {{ form.image.errors }}
+                            <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" class="form-control {% if form.image.errors %}is-invalid{% endif %}" accept="image/*" required>
+                            <div class="form-text">Поддерживаемые форматы: JPG, PNG, GIF. Максимальный размер: 5 МБ.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.caption.id_for_label }}" class="form-label">{{ form.caption.label }}</label>
+                            {{ form.caption.errors }}
+                            <input type="text" name="{{ form.caption.name }}" id="{{ form.caption.id_for_label }}" class="form-control {% if form.caption.errors %}is-invalid{% endif %}" value="{{ form.caption.value|default:'' }}" placeholder="Например: Интерьер студии, Зал №1, Гримерная и т.д.">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="{{ form.is_main.name }}" id="{{ form.is_main.id_for_label }}" class="form-check-input {% if form.is_main.errors %}is-invalid{% endif %}" {% if form.is_main.value %}checked{% endif %}>
+                                <label class="form-check-label" for="{{ form.is_main.id_for_label }}">{{ form.is_main.label }}</label>
+                            </div>
+                            <div class="form-text">Если отмечено, это изображение будет использоваться как главное для студии.</div>
+                            {{ form.is_main.errors }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'studios:studio_detail' studio.pk %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-cta">Добавить изображение</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

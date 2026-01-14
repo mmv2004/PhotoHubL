@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}
+        Редактирование события | PhotoHub
+    {% else %}
+        Добавление события | PhotoHub
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<link rel="stylesheet" href="{% static 'css/calendar/event_form.css' %}">
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        {% if object %}
+                            Редактирование события
+                        {% else %}
+                            Добавление нового события
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                            {{ form.title.errors }}
+                            <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" class="form-control {% if form.title.errors %}is-invalid{% endif %}" value="{{ form.title.value|default:'' }}" required>
+                        </div>
+
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.start_datetime.id_for_label }}" class="form-label">{{ form.start_datetime.label }}</label>
+                                {{ form.start_datetime.errors }}
+                                <input type="text" name="{{ form.start_datetime.name }}" id="{{ form.start_datetime.id_for_label }}" class="form-control datepicker {% if form.start_datetime.errors %}is-invalid{% endif %}" value="{{ form.start_datetime.value|date:'Y-m-d H:i'|default:'' }}" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.end_datetime.id_for_label }}" class="form-label">{{ form.end_datetime.label }}</label>
+                                {{ form.end_datetime.errors }}
+                                <input type="text" name="{{ form.end_datetime.name }}" id="{{ form.end_datetime.id_for_label }}" class="form-control datepicker {% if form.end_datetime.errors %}is-invalid{% endif %}" value="{{ form.end_datetime.value|date:'Y-m-d H:i'|default:'' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="{{ form.is_all_day.name }}" id="{{ form.is_all_day.id_for_label }}" class="form-check-input" {% if form.is_all_day.value %}checked{% endif %}>
+                            <label for="{{ form.is_all_day.id_for_label }}" class="form-check-label">{{ form.is_all_day.label }}</label>
+                        </div>
+
+                        {% if form.client %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.client.id_for_label }}" class="form-label">{{ form.client.label }}</label>
+                                {{ form.client.errors }}
+                                <select name="{{ form.client.name }}"
+                                        id="{{ form.client.id_for_label }}"
+                                        class="form-select select2 {% if form.client.errors %}is-invalid{% endif %}">
+                                    <option value="">-- Выберите клиента --</option>
+                                    {% for client in form.fields.client.queryset %}
+                                        <option value="{{ client.pk }}"
+                                                {% if form.client.value|stringformat:"i" == client.pk|stringformat:"i" %}selected{% endif %}>
+                                            {{ client.get_full_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.studio.id_for_label }}" class="form-label">{{ form.studio.label }}</label>
+                                {{ form.studio.errors }}
+                                <select name="{{ form.studio.name }}"
+                                        id="{{ form.studio.id_for_label }}"
+                                        class="form-select select2 {% if form.studio.errors %}is-invalid{% endif %}">
+                                    <option value="">-- Выберите студию/локацию --</option>
+                                    {% for studio in form.fields.studio.queryset %}
+                                        <option value="{{ studio.pk }}"
+                                                {% if form.studio.value|stringformat:"i" == studio.pk|stringformat:"i" %}selected{% endif %}>
+                                            {{ studio.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description.errors }}
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" class="form-control {% if form.description.errors %}is-invalid{% endif %}" rows="4">{{ form.description.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.color.id_for_label }}" class="form-label">{{ form.color.label }}</label>
+                            {{ form.color.errors }}
+                            <input type="hidden" name="{{ form.color.name }}" id="{{ form.color.id_for_label }}" value="{{ form.color.value|default:'#3788d8' }}">
+
+                            <div class="color-picker">
+                                <div class="color-option" data-color="#3788d8" style="background-color: #3788d8;"></div>
+                                <div class="color-option" data-color="#ff0000" style="background-color: #ff0000;"></div>
+                                <div class="color-option" data-color="#00c851" style="background-color: #00c851;"></div>
+                                <div class="color-option" data-color="#ffbb33" style="background-color: #ffbb33;"></div>
+                                <div class="color-option" data-color="#9c27b0" style="background-color: #9c27b0;"></div>
+                                <div class="color-option" data-color="#ff4444" style="background-color: #ff4444;"></div>
+                                <div class="color-option" data-color="#00695c" style="background-color: #00695c;"></div>
+                                <div class="color-option" data-color="#ff8800" style="background-color: #ff8800;"></div>
+                                <div class="color-option" data-color="#2196f3" style="background-color: #2196f3;"></div>
+                                <div class="color-option" data-color="#4caf50" style="background-color: #4caf50;"></div>
+                                <div class="color-option" data-color="#e91e63" style="background-color: #e91e63;"></div>
+                                <div class="color-option" data-color="#607d8b" style="background-color: #607d8b;"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if object %}{% url 'calendar:event_detail' object.pk %}{% else %}{% url 'calendar:calendar' %}{% endif %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-cta">
+                                {% if object %}
+                                    Сохранить изменения
+                                {% else %}
+                                    Добавить событие
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+<!-- jQuery и Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script src="{% static 'js/calendar/event_form.js' %}"></script>
+{% endblock %}

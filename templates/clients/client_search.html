@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Поиск клиентов | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2>Поиск клиентов</h2>
+            <a href="{% url 'clients:client_add' %}" class="btn btn-cta">
+                <i class="fas fa-plus"></i> Добавить клиента
+            </a>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Параметры поиска</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'clients:client_search' %}">
+                        <div class="row">
+                            <div class="col-md-8">
+                                {{ form.query }}
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i> Найти
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Результаты поиска</h5>
+                    <span class="badge bg-primary">{{ clients|length }} найдено</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Имя</th>
+                                    <th>Email</th>
+                                    <th>Телефон</th>
+                                    <th>Дата рождения</th>
+                                    <th>Дата добавления</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for client in clients %}
+                                    <tr>
+                                        <td>{{ client.get_full_name }}</td>
+                                        <td>{{ client.email|default:"-" }}</td>
+                                        <td>{{ client.phone_number|default:"-" }}</td>
+                                        <td>{{ client.birth_date|date:"d.m.Y"|default:"-" }}</td>
+                                        <td>{{ client.created_at|date:"d.m.Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'clients:client_detail' client.pk %}" class="btn btn-sm btn-outline-info" title="Просмотр">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'clients:client_edit' client.pk %}" class="btn btn-sm btn-outline-primary" title="Редактировать">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'clients:client_delete' client.pk %}" class="btn btn-sm btn-outline-danger" title="Удалить">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">
+                                            <p class="mb-0 text-muted">По вашему запросу ничего не найдено</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'clients:client_list' %}" class="btn btn-outline-secondary">Вернуться к списку клиентов</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

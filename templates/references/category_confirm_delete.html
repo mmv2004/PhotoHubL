@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление категории | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'references:reference_list' %}">Референсы</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'references:category_list' %}">Категории</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Удаление категории</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Подтверждение удаления</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">Вы уверены, что хотите удалить категорию <strong>{{ object.name }}</strong>?</p>
+                    
+                    {% if object.references.count > 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> В этой категории содержится <strong>{{ object.references.count }}</strong> референсов. При удалении категории, все референсы останутся, но будут перемещены в категорию "Без категории".
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> В этой категории нет референсов.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Это действие нельзя будет отменить.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'references:category_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

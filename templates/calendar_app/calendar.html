@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная | PhotoHub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css">
+<link rel="stylesheet" href="{% static 'css/calendar/calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2 class="mb-4">Добро пожаловать, {{ user.first_name }}!</h2>
+            <a href="{% url 'calendar:event_add' %}?filter={% if request.GET.filter %}{{ request.GET.filter }}{% else %}photoshoot{% endif %}" class="btn btn-cta">
+                <i class="fas fa-plus"></i> Добавить событие
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card p-3 text-center">
+                <form action="{% url 'calendar:calendar' %}" method="get" class="toggle-form">
+                    <div class="ios-toggle">
+                        <input type="radio" id="photoshoot" name="filter" value="photoshoot"
+                               {% if request.GET.filter == 'photoshoot' or not request.GET.filter %}checked{% endif %}>
+                        <label for="photoshoot">Съёмки</label>
+
+                        <input type="radio" id="post" name="filter" value="post"
+                               {% if request.GET.filter == 'post' %}checked{% endif %}>
+                        <label for="post">Посты</label>
+
+                        <span class="slider"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="calendar" data-events='{{ events|safe }}'></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающая подсказка -->
+    <div id="eventTooltip" class="event-tooltip">
+        <div class="event-tooltip-title"></div>
+        <div class="event-tooltip-content">
+            <div class="event-tooltip-item">
+                <span class="event-tooltip-label">Тип:</span>
+                <span class="event-tooltip-type"></span>
+            </div>
+            <div class="event-tooltip-item event-tooltip-client-container">
+                <span class="event-tooltip-label">Клиент:</span>
+                <span class="event-tooltip-client"></span>
+            </div>
+            <div class="event-tooltip-item event-tooltip-studio-container">
+                <span class="event-tooltip-label">Студия:</span>
+                <span class="event-tooltip-studio"></span>
+            </div>
+            <div class="event-tooltip-item event-tooltip-time-container">
+                <span class="event-tooltip-label">Время:</span>
+                <span class="event-tooltip-time"></span>
+            </div>
+            <div class="event-tooltip-item event-tooltip-description-container">
+                <span class="event-tooltip-label">Описание:</span>
+                <span class="event-tooltip-description"></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales-all.min.js"></script>
+<script src="{% static 'js/calendar/calendar.js' %}"></script>
+<script>
+    document.querySelectorAll('.ios-toggle input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            this.form.submit();
+        });
+    });
+
+
+
+</script>
+
+
+{% endblock %}

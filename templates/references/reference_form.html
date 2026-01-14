@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}
+        Редактирование референса | PhotoHub
+    {% else %}
+        Добавление референса | PhotoHub
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'references:reference_list' %}">Референсы</a></li>
+                    {% if object %}
+                        <li class="breadcrumb-item"><a href="{% url 'references:reference_detail' object.pk %}">{{ object.title }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Редактирование</li>
+                    {% else %}
+                        <li class="breadcrumb-item active" aria-current="page">Добавление референса</li>
+                    {% endif %}
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        {% if object %}
+                            Редактирование референса
+                        {% else %}
+                            Добавление нового референса
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                            {{ form.title.errors }}
+                            <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}" class="form-control {% if form.title.errors %}is-invalid{% endif %}" value="{{ form.title.value|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                            {{ form.category.errors }}
+                            <select name="{{ form.category.name }}" id="{{ form.category.id_for_label }}" class="form-select {% if form.category.errors %}is-invalid{% endif %}">
+                                <option value="">-- Выберите категорию --</option>
+                                {% for category in form.fields.category.queryset %}
+                                    <option value="{{ category.pk }}" {% if form.category.value|stringformat:"i" == category.pk|stringformat:"i" %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Если нужной категории нет, <a href="{% url 'references:category_add' %}" target="_blank">создайте новую</a>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
+                            {{ form.image.errors }}
+                            
+                            {% if object and object.image %}
+                                <div class="mb-3">
+                                    <img src="{{ object.image.url }}" alt="{{ object.title }}" style="max-height: 200px; max-width: 100%;" class="img-thumbnail">
+                                </div>
+                            {% endif %}
+                            
+                            <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" class="form-control {% if form.image.errors %}is-invalid{% endif %}" {% if not object %}required{% endif %} accept="image/*">
+                            <div class="form-text">Поддерживаемые форматы: JPG, PNG, GIF. Максимальный размер: 5 МБ.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description.errors }}
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" class="form-control {% if form.description.errors %}is-invalid{% endif %}" rows="4">{{ form.description.value|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.source_url.id_for_label }}" class="form-label">{{ form.source_url.label }}</label>
+                            {{ form.source_url.errors }}
+                            <input type="url" name="{{ form.source_url.name }}" id="{{ form.source_url.id_for_label }}" class="form-control {% if form.source_url.errors %}is-invalid{% endif %}" value="{{ form.source_url.value|default:'' }}" placeholder="https://example.com">
+                            <div class="form-text">Укажите ссылку на источник изображения (если есть)</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if object %}{% url 'references:reference_detail' object.pk %}{% else %}{% url 'references:reference_list' %}{% endif %}" class="btn btn-outline-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-cta">
+                                {% if object %}
+                                    Сохранить изменения
+                                {% else %}
+                                    Добавить референс
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

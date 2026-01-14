@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Референсы | PhotoHub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/references/reference_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h2>Мои референсы</h2>
+            <div class="d-flex gap-2">
+                <a href="{% url 'references:reference_search' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-search"></i> Поиск
+                </a>
+                <a href="{% url 'references:category_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-folder"></i> Категории
+                </a>
+                <a href="{% url 'references:reference_add' %}" class="btn btn-cta">
+                    <i class="fas fa-plus"></i> Добавить
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Фильтр по категориям</h5>
+                    <span class="badge bg-primary">{{ references|length }} референсов</span>
+                </div>
+                <div class="card-body">
+                    <div class="category-filter">
+                        <a href="{% url 'references:reference_list' %}" class="category-badge {% if not current_category %}active{% endif %}">
+                            Все референсы
+                        </a>
+                        {% for category in categories %}
+                            <a href="{% url 'references:references_by_category' category.id %}" class="category-badge {% if current_category.id == category.id %}active{% endif %}">
+                                {{ category.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if references %}
+                <div class="reference-grid">
+                    {% for reference in references %}
+                        <div class="reference-card">
+                            <a href="{% url 'references:reference_detail' reference.pk %}">
+                                <img src="{{ reference.image.url }}" alt="{{ reference.title }}" class="reference-image">
+                            </a>
+                            <div class="reference-overlay">
+                                <h6 class="reference-title">{{ reference.title }}</h6>
+                                {% if reference.category %}
+                                    <div class="reference-category">
+                                        <i class="fas fa-folder-open me-1"></i> {{ reference.category.name }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="reference-actions">
+                                <a href="{% url 'references:reference_edit' reference.pk %}" class="btn btn-sm btn-light" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'references:reference_delete' reference.pk %}" class="btn btn-sm btn-danger" title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        {% if current_category %}
+                            <p class="mb-4">В категории "{{ current_category.name }}" пока нет референсов</p>
+                        {% else %}
+                            <p class="mb-4">У вас пока нет референсов</p>
+                        {% endif %}
+                        <a href="{% url 'references:reference_add' %}" class="btn btn-cta">
+                            <i class="fas fa-plus"></i> Добавить первый референс
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

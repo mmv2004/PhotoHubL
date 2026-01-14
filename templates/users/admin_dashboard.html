@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Административная панель | PhotoHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">Административная панель</h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Пользователи</h5>
+                    <a href="{% url 'admin:users_customuser_changelist' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt"></i> Перейти в стандартрную адмиг-панель
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Имя</th>
+                                    <th>Email</th>
+                                    <th>Дата регистрации</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            {% if user.avatar %}
+                                                <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name }}" class="avatar-sm me-2">
+                                            {% else %}
+                                                <i class="fas fa-user-circle me-2"></i>
+                                            {% endif %}
+                                            {{ user.get_full_name }}
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                                        <td>
+                                            {% if user.is_active %}
+                                                <span class="badge bg-success">Активен</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Неактивен</span>
+                                            {% endif %}
+                                            
+                                            {% if user.is_staff %}
+                                                <span class="badge bg-primary">Администратор</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'admin:users_customuser_change' user.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">Нет пользователей</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'admin:users_customuser_add' %}" class="btn btn-sm btn-cta">Добавить пользователя</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Студии и локации</h5>
+                    <a href="{% url 'admin:studios_studio_changelist' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt"></i> Перейти в стандартрную адмиг-панель
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Тип</th>
+                                    <th>Адрес</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for studio in studios %}
+                                    <tr>
+                                        <td>{{ studio.name }}</td>
+                                        <td>{{ studio.get_location_type_display }}</td>
+                                        <td>{{ studio.get_full_address }}</td>
+                                        <td>
+                                            {% if studio.is_public %}
+                                                <span class="badge bg-success">Публичная</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Приватная</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'studios:studio_detail' studio.id %}" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:studios_studio_change' studio.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">Нет студий</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{% url 'studios:studio_add' %}" class="btn btn-sm btn-cta">Добавить студию</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Быстрый доступ к админке</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:users_customuser_changelist' %}" class="card text-center h-100 text-decoration-none">
+                                <div class="card-body">
+                                    <i class="fas fa-users fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">Пользователи</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:clients_client_changelist' %}" class="card text-center h-100 text-decoration-none">
+                                <div class="card-body">
+                                    <i class="fas fa-address-book fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">Клиенты</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:studios_studio_changelist' %}" class="card text-center h-100 text-decoration-none">
+                                <div class="card-body">
+                                    <i class="fas fa-building fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">Студии</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:references_reference_changelist' %}" class="card text-center h-100 text-decoration-none">
+                                <div class="card-body">
+                                    <i class="fas fa-images fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">Референсы</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:calendar_app_event_changelist' %}" class="card text-center h-100 text-decoration-none">
+                                <div class="card-body">
+                                    <i class="fas fa-calendar-alt fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">События</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:index' %}" class="card text-center h-100 text-decoration-none">
+                                <div class="card-body">
+                                    <i class="fas fa-cogs fa-3x mb-3 text-primary"></i>
+                                    <h5 class="card-title">Админ-панель</h5>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

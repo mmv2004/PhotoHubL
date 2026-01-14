@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ reference.title }} | Референсы | PhotoHub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/css/lightbox.min.css">
+<link rel="stylesheet" href="{% static 'css/references/reference_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'references:reference_list' %}">Референсы</a></li>
+                    {% if reference.category %}
+                        <li class="breadcrumb-item"><a href="{% url 'references:references_by_category' reference.category.id %}">{{ reference.category.name }}</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ reference.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ reference.title }}</h5>
+                    <div>
+                        <a href="{% url 'references:reference_edit' reference.pk %}" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </a>
+                        <a href="{% url 'references:reference_delete' reference.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i> Удалить
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="reference-image-container">
+                        <a href="{{ reference.image.url }}" data-lightbox="reference" data-title="{{ reference.title }}">
+                            <img src="{{ reference.image.url }}" alt="{{ reference.title }}" class="reference-image">
+                        </a>
+                    </div>
+
+                    {% if reference.description %}
+                        <div class="reference-description">
+                            <h6>Описание</h6>
+                            <div>{{ reference.description|linebreaks }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Информация</h5>
+                </div>
+                <div class="card-body">
+                    <div class="reference-meta">
+                        {% if reference.category %}
+                            <div class="reference-meta-item">
+                                <div class="reference-meta-label">Категория</div>
+                                <div class="reference-meta-value">
+                                    <a href="{% url 'references:references_by_category' reference.category.id %}" class="badge bg-primary">
+                                        {{ reference.category.name }}
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="reference-meta-item">
+                            <div class="reference-meta-label">Дата добавления</div>
+                            <div class="reference-meta-value">{{ reference.created_at|date:"d.m.Y H:i" }}</div>
+                        </div>
+
+                        {% if reference.source_url %}
+                            <div class="reference-meta-item">
+                                <div class="reference-meta-label">Источник</div>
+                                <div class="reference-meta-value">
+                                    <a href="{{ reference.source_url }}" target="_blank" class="text-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i> Перейти к источнику
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'references:reference_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i> Вернуться к списку
+                    </a>
+                </div>
+            </div>
+
+            {% if related_references %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Похожие референсы</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for related in related_references %}
+                                <div class="col-6 mb-3">
+                                    <a href="{% url 'references:reference_detail' related.pk %}" class="related-reference-card d-block">
+                                        <img src="{{ related.image.url }}" alt="{{ related.title }}" class="related-reference-image">
+                                        <div class="related-reference-overlay">
+                                            <h6 class="related-reference-title">{{ related.title }}</h6>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.3/dist/js/lightbox.min.js"></script>
+<script src="{% static 'js/references/reference_detail.js' %}"></script>
+{% endblock %}
